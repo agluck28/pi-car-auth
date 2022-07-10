@@ -1,3 +1,0 @@
-[submodule "src/replies/schemas"]
-	path = src/replies/schemas
-	url = https://github.com/agluck28/schemas.git
