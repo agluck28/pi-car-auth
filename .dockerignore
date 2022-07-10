@@ -1,0 +1,9 @@
+venv
+dist
+*.toml
+*.cfg
+*.egg-info
+__pycache__
+README.MD
+.gitattributes
+.gitignore

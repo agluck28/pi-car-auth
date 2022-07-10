@@ -9,6 +9,8 @@ from replies.DeleteUser import DeleteUser
 from auth.PiRobotCarAuth import PiRobotCarAuth
 from auth.jwt_helper import JwtCreator
 import time
+from dotenv import dotenv_values
+
 
 def create_mqtt_server(server: str, port: int = 1883,
                        user_name: str = None, password: str = None,
@@ -33,7 +35,8 @@ def create_replies(comm: MqttComm, db: PiRobotCarAuth,
     replies: set[Subscriber] = {
         AddUser(project, service, qos, db, comm.send_data).subscriber,
         GetAllUsers(project, service, qos, comm.send_data, db).subscriber,
-        AuthenticateUser(project, service, qos, comm.send_data, db, jwt).subscriber,
+        AuthenticateUser(project, service, qos,
+                         comm.send_data, db, jwt).subscriber,
         AuthorizeUser(project, service, qos, comm.send_data, jwt).subscriber,
         UpdateAccess(project, service, qos, comm.send_data, db).subscriber,
         DeleteUser(project, service, qos, comm.send_data, db).subscriber
@@ -42,16 +45,17 @@ def create_replies(comm: MqttComm, db: PiRobotCarAuth,
 
 
 if __name__ == '__main__':
-    DATABASE_NAME = 'pi-car-auth'
-    DATABASE_URL = '192.168.1.29'
-    DATABASE_USER_NAME = 'pi_robot_auth'
-    DATABASE_PASSWORD = 'GUAaNkKAxXmXqT6'
-    SECRET = 'sdajhsfdkjsdhfr8ASFVs9m9-8VM'
-    MQTT_SERVER = 'localhost'
+    config = dotenv_values('.env')
 
-    comm = create_mqtt_server(MQTT_SERVER)
-    db = create_db_helper(DATABASE_NAME, DATABASE_URL, DATABASE_USER_NAME, DATABASE_PASSWORD)
-    jwt = create_jwt_helper(SECRET)
+    comm = create_mqtt_server(config['MQTT_SERVER'],
+                              user_name=config['MQTT_USER_NAME'],
+                              password=config['MQTT_PASSWORD'],
+                              client_id=config['MQTT_CLIENT_ID'])
+    db = create_db_helper(config['DATABASE_NAME'],
+                          config['DATABASE_URL'],
+                          config['DATABASE_USER_NAME'],
+                          config['DATABASE_PASSWORD'])
+    jwt = create_jwt_helper(config['JWT_SECRET'])
     replies = create_replies(comm, db, jwt)
     comm.subscriptions = replies
     try:
