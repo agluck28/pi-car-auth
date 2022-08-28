@@ -12,9 +12,6 @@ serialSchemaPath = pathlib.Path.joinpath(
 deSerialSchemaPath = pathlib.Path.joinpath(
     path, './schemas/src/auth/pi_car_robot.auth.userRequest.avsc')
 
-serializer = AvroHelper(serialSchemaPath)
-deserializer = AvroHelper(deSerialSchemaPath)
-
 
 class AddUser(BaseReply):
     '''
@@ -23,14 +20,17 @@ class AddUser(BaseReply):
 
     def __init__(self, project: str, service: str,
                  qos: int, db_helper: PiRobotCarAuth,
-                 publisher: Callable[[Message], None]) -> None:
+                 publisher: Callable[[Message], None],
+                 json: bool = False) -> None:
         super().__init__(project, service, 'add_user',
-                         qos, deserializer, serializer, publisher)
+                         qos, AvroHelper(deSerialSchemaPath, json),
+                         AvroHelper(serialSchemaPath, json), publisher)
         self.db = db_helper
 
     def handle_message(self, data: AddUserMessage) -> StandardResponse:
         try:
-            self.db.add_user(data['userName'], data['password'], [data['access']])
+            self.db.add_user(data['userName'],
+                             data['password'], [data['access']])
             return StandardResponse(success=True)
         except (RuntimeWarning, KeyError) as e:
             return StandardResponse(success=False,

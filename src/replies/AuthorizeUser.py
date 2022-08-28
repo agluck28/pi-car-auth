@@ -12,25 +12,25 @@ serialSchemaPath = pathlib.Path.joinpath(
 deSerialSchemaPath = pathlib.Path.joinpath(
     path, './schemas/src/auth/pi_car_robot.auth.authorizeUser.avsc')
 
-serializer = AvroHelper(serialSchemaPath)
-deserializer = AvroHelper(deSerialSchemaPath)
-
 
 class AuthorizeUser(BaseReply):
 
     def __init__(self, project: str, service: str, qos: int,
-                 publisher: Callable[[Message], None], jwt: JwtCreator) -> None:
+                 publisher: Callable[[Message], None], jwt: JwtCreator,
+                 json: bool = False) -> None:
         super().__init__(project, service, 'authorize_user',
-                         qos, deserializer, serializer, publisher)
+                         qos, AvroHelper(deSerialSchemaPath, json),
+                         AvroHelper(serialSchemaPath, json), publisher)
         self.jwt = jwt
 
     def handle_message(self, data: AuthorizeUserMessage) -> StandardResponse:
         check = self.jwt.decode_token(data['token'])
         if check[0]:
-            #token was valid, check access level
+            # token was valid, check access level
             if data['access'] in check[1]['access']:
                 return StandardResponse(success=True)
             else:
-                return StandardResponse(success=False, msg='Invalid access level')
+                return StandardResponse(success=False,
+                                        msg='Invalid access level')
         else:
             return StandardResponse(success=False, msg='Invalid Token')

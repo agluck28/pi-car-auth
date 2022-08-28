@@ -39,7 +39,19 @@ def create_replies(comm: MqttComm, db: PiRobotCarAuth,
                          comm.send_data, db, jwt).subscriber,
         AuthorizeUser(project, service, qos, comm.send_data, jwt).subscriber,
         UpdateAccess(project, service, qos, comm.send_data, db).subscriber,
-        DeleteUser(project, service, qos, comm.send_data, db).subscriber
+        DeleteUser(project, service, qos, comm.send_data, db).subscriber,
+        AddUser(project, f'{service}_json', qos, db,
+                comm.send_data, True).subscriber,
+        GetAllUsers(project, f'{service}_json', qos,
+                    comm.send_data, db, True).subscriber,
+        AuthenticateUser(project, f'{service}_json', qos,
+                         comm.send_data, db, jwt, json=True).subscriber,
+        AuthorizeUser(project, f'{service}_json', qos,
+                      comm.send_data, jwt, True).subscriber,
+        UpdateAccess(project, f'{service}_json', qos,
+                     comm.send_data, db, True).subscriber,
+        DeleteUser(project, f'{service}_json', qos,
+                   comm.send_data, db, True).subscriber
     }
     return replies
 

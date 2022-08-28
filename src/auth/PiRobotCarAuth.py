@@ -104,7 +104,7 @@ class PiRobotCarAuth():
                 cur.close()
             raise RuntimeWarning(self._handle_exceptions(error))
         except TypeError as error:
-            return {'code': 401, 'msg': 'Wring user name or password'}
+            return {'code': 401, 'msg': 'Wrong user name or password'}
 
     def delete_user(self, user_name: str) -> None:
         try:

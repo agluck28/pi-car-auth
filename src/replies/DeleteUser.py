@@ -12,17 +12,15 @@ serialSchemaPath = pathlib.Path.joinpath(
 deSerialSchemaPath = pathlib.Path.joinpath(
     path, './schemas/src/auth/pi_car_robot.auth.deleteUser.avsc')
 
-serializer = AvroHelper(serialSchemaPath)
-deserializer = AvroHelper(deSerialSchemaPath)
-
 
 class DeleteUser(BaseReply):
 
     def __init__(self, project: str, service: str,
                  qos: int, publisher: Callable[[Message], None],
-                 db_helper: PiRobotCarAuth) -> None:
+                 db_helper: PiRobotCarAuth, json: bool = False) -> None:
         super().__init__(project, service, 'delete_user',
-                         qos, deserializer, serializer, publisher)
+                         qos, AvroHelper(deSerialSchemaPath, json),
+                         AvroHelper(serialSchemaPath, json), publisher)
         self.db = db_helper
 
     def handle_message(self, data: DeleteUserMessage) -> StandardResponse:
@@ -30,4 +28,5 @@ class DeleteUser(BaseReply):
             self.db.delete_user(data['userName'])
             return StandardResponse(success=True)
         except RuntimeWarning as e:
-            return StandardResponse(success=False, msg=f'{type(e).__name__}: {e}')
+            return StandardResponse(success=False,
+                                    msg=f'{type(e).__name__}: {e}')

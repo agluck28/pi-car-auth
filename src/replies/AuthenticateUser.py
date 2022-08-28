@@ -13,18 +13,16 @@ serialSchemaPath = pathlib.Path.joinpath(
 deSerialSchemaPath = pathlib.Path.joinpath(
     path, './schemas/src/auth/pi_car_robot.auth.userRequest.avsc')
 
-serializer = AvroHelper(serialSchemaPath)
-deserializer = AvroHelper(deSerialSchemaPath)
-
 
 class AuthenticateUser(BaseReply):
 
     def __init__(self, project: str, service: str,
                  qos: int, publisher: Callable[[Message], None],
                  db_helper: PiRobotCarAuth, jwt: JwtCreator,
-                 life_span: int = 604800) -> None:
+                 life_span: int = 604800, json: bool = False) -> None:
         super().__init__(project, service, 'authenticate_user',
-                         qos, deserializer, serializer, publisher)
+                         qos, AvroHelper(deSerialSchemaPath, json),
+                         AvroHelper(serialSchemaPath, json), publisher)
         self.db = db_helper
         self.jwt = jwt
         self.life_span = life_span
@@ -39,4 +37,5 @@ class AuthenticateUser(BaseReply):
                                               access=[data['access']])
                 return StandardResponse(success=True, msg=token)
         except RuntimeWarning as e:
-            return StandardResponse(success=False, msg=f'{type(e).__name__}: {e}')
+            return StandardResponse(success=False,
+                                    msg=f'{type(e).__name__}: {e}')
